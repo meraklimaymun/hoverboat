@@ -1,0 +1,78 @@
+/*
+*******************************************************************************************
+**                                                                                       **
+**     _____ ______   _______   ________  ________  ___  __    ___       ___             **
+**    |\   _ \  _   \|\  ___ \ |\   __  \|\   __  \|\  \|\  \ |\  \     |\  \            **
+**    \ \  \\\__\ \  \ \   __/|\ \  \|\  \ \  \|\  \ \  \/  /|\ \  \    \ \  \           **
+**     \ \  \\|__| \  \ \  \_|/_\ \   _  _\ \   __  \ \   ___  \ \  \    \ \  \          **
+**      \ \  \    \ \  \ \  \_|\ \ \  \\  \\ \  \ \  \ \  \\ \  \ \  \____\ \  \         **
+**       \ \__\    \ \__\ \_______\ \__\\ _\\ \__\ \__\ \__\\ \__\ \_______\ \__\        **
+**        \|__|     \|__|\|_______|\|__|\|__|\|__|\|__|\|__| \|__|\|_______|\|__|        **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+**    _____ ______   ________      ___    ___ _____ ______   ___  ___  ________          **
+**    |\   _ \  _   \|\   __  \    |\  \  /  /|\   _ \  _   \|\  \|\  \|\   ___  \       **
+**    \ \  \\\__\ \  \ \  \|\  \   \ \  \/  / | \  \\\__\ \  \ \  \\\  \ \  \\ \  \      **
+**     \ \  \\|__| \  \ \   __  \   \ \    / / \ \  \\|__| \  \ \  \\\  \ \  \\ \  \     **
+**      \ \  \    \ \  \ \  \ \  \   \/  /  /   \ \  \    \ \  \ \  \\\  \ \  \\ \  \    **
+**       \ \__\    \ \__\ \__\ \__\__/  / /      \ \__\    \ \__\ \_______\ \__\\ \__\   **
+**        \|__|     \|__|\|__|\|__|\___/ /        \|__|     \|__|\|_______|\|__| \|__|   **
+**                                \|___|/                                                **
+**                                                                                       **
+**                                                                                       **
+**                    https://www.youtube.com/user/MerakliMaymunn                        **
+**                                                                                       **
+**                              SEN DE YAP: HOVERBOAT VERİCİ                             **
+**                        Video linki: https://youtu.be/sfHq8MFmmG8                      **
+**                                                                                       **
+**                                                                                       **
+**        Dikkat: Bu kod için ManiacBug'un RF24 kütüphanesini indirmenizi gerektirir.    **
+**                           Link: https://github.com/maniacbug/RF24                     **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+*******************************************************************************************
+*/
+
+// Kütüphaneler projeye dahil ediliyor.
+#include <SPI.h> 
+#include <nRF24L01.h>
+#include <RF24.h>
+
+//Pinler tanımlanıyor...
+#define CE_PIN   9
+#define CSN_PIN 10
+#define JOYSTICKX A0 //X ekseni Analog 0 pinine bağlı.
+#define JOYSTICKY A1 // Y ekseni Analog 1 pinine bağlı.
+#define BUTON 8 //Bizdeki joystick'in butonu 8. pine bağlıydı. Siz de test ederek bulabilirsiniz.
+
+//Değişkenler yazılıyor.
+const uint64_t pipe = 0xE8E8F0F0E1LL; 
+RF24 radio(CE_PIN, CSN_PIN); 
+int joystick[3];  //3 elemanlı joystick değişkenimizi tanımladık. Bu elemanlardan ilki Y ekseni, ikincisi X ekseni, 3.sü de joystick'in orta butonu.
+
+void setup() 
+{
+  //Serial.begin(9600);
+  radio.begin();
+  radio.openWritingPipe(pipe);
+  pinMode(BUTON, INPUT);
+}
+
+void loop()   
+{
+
+  joystick[0] = analogRead(JOYSTICKX);
+  joystick[1] = analogRead(JOYSTICKY);
+  joystick[2] = digitalRead(BUTON);
+  radio.write( joystick, sizeof(joystick) ); //Gönderim yapılıyor...
+ 
+//HATA AYIKLAMA (DEBUG)
+  //Serial.print(analogRead(A0));
+  //Serial.print(" ");
+  //Serial.print(analogRead(A1));
+  //Serial.print(" ");
+  //Serial.print(digitalRead(BUTON));
+}
