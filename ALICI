@@ -1,0 +1,250 @@
+/*
+*******************************************************************************************
+**                                                                                       **
+**     _____ ______   _______   ________  ________  ___  __    ___       ___             **
+**    |\   _ \  _   \|\  ___ \ |\   __  \|\   __  \|\  \|\  \ |\  \     |\  \            **
+**    \ \  \\\__\ \  \ \   __/|\ \  \|\  \ \  \|\  \ \  \/  /|\ \  \    \ \  \           **
+**     \ \  \\|__| \  \ \  \_|/_\ \   _  _\ \   __  \ \   ___  \ \  \    \ \  \          **
+**      \ \  \    \ \  \ \  \_|\ \ \  \\  \\ \  \ \  \ \  \\ \  \ \  \____\ \  \         **
+**       \ \__\    \ \__\ \_______\ \__\\ _\\ \__\ \__\ \__\\ \__\ \_______\ \__\        **
+**        \|__|     \|__|\|_______|\|__|\|__|\|__|\|__|\|__| \|__|\|_______|\|__|        **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+**    _____ ______   ________      ___    ___ _____ ______   ___  ___  ________          **
+**    |\   _ \  _   \|\   __  \    |\  \  /  /|\   _ \  _   \|\  \|\  \|\   ___  \       **
+**    \ \  \\\__\ \  \ \  \|\  \   \ \  \/  / | \  \\\__\ \  \ \  \\\  \ \  \\ \  \      **
+**     \ \  \\|__| \  \ \   __  \   \ \    / / \ \  \\|__| \  \ \  \\\  \ \  \\ \  \     **
+**      \ \  \    \ \  \ \  \ \  \   \/  /  /   \ \  \    \ \  \ \  \\\  \ \  \\ \  \    **
+**       \ \__\    \ \__\ \__\ \__\__/  / /      \ \__\    \ \__\ \_______\ \__\\ \__\   **
+**        \|__|     \|__|\|__|\|__|\___/ /        \|__|     \|__|\|_______|\|__| \|__|   **
+**                                \|___|/                                                **
+**                                                                                       **
+**                                                                                       **
+**                    https://www.youtube.com/user/MerakliMaymunn                        **
+**                                                                                       **
+**                               SEN DE YAP: HOVERBOAT ALICI                             **
+**                        Video linki: https://youtu.be/sfHq8MFmmG8                      **
+**                                                                                       **
+**                                                                                       **
+**        Dikkat: Bu video ManiacBug'un RF24 kütüphanesini indirmenizi gerektirir.       **
+**                           Link: https://github.com/maniacbug/RF24                     **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+**                                                                                       **
+*******************************************************************************************
+*/
+
+// Kütüphaneler projeye dahil ediliyor.
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
+
+//Pinler tanımlanıyor...
+#define CE_PIN   4
+#define CSN_PIN 10
+
+//Değişkenler yazılıyor.
+int hiz1;
+int hiz2;
+int donus1;
+int donus2;
+int donus3;
+int donus4;
+int skid1a;
+int skid1b;
+int skid2a;
+int skid2b;
+int skid3a;
+int skid3b;
+int skid4a;
+int skid4b;
+
+const int solileri = 6; 
+const int solgeri = 5;  
+const int sagileri = 9;  
+const int saggeri = 3; 
+
+const uint64_t pipe = 0xE8E8F0F0E1LL;
+
+RF24 radio(CE_PIN, CSN_PIN); 
+
+int joystick[3]; //3 elemanlı joystick değişkenimizi tanımladık. Bu elemanlardan ilki Y ekseni, ikincisi X ekseni, 3.sü de joystick'in orta butonu.
+
+void setup()   
+{
+pinMode(8,OUTPUT);
+digitalWrite(8,HIGH);
+pinMode(7,OUTPUT);
+pinMode(2,OUTPUT);
+digitalWrite(7,HIGH);
+pinMode(solileri, OUTPUT);
+pinMode(solgeri, OUTPUT);
+pinMode(sagileri, OUTPUT);
+pinMode(saggeri, OUTPUT);  
+  
+  //Serial.begin(9600);
+  
+  delay(1000);
+  radio.begin();
+  radio.openReadingPipe(1,pipe);
+  radio.startListening();;
+}
+
+
+void loop() {
+  if ( radio.available() ) //Eğer sinyal algılarsan...
+  {
+    radio.read( joystick, sizeof(joystick) ); //Bu sinyallerden gelen verileri 3 elemanlı joystick değişkenine sırasıyla yaz.
+hareket(joystick[0],joystick[1],joystick[2]); // Sonra bu verileri kullanarak hareket fonksiyonunu çağır.
+
+  }
+}
+
+void hareket(int X_ekseni, int Y_ekseni, int buton) { //Asıl olay
+
+//0-1023 arasındaki X ve Y ekseninden gelen geri bildirimi, 0-255 aralıklarına
+// uygun şekilde çekerek aşağıdaki değişkenlere yazdırıyoruz. Daha sonra bu değişkenleri
+// analogWrite komutu ile motorlara hız vermek için kullanacağız.
+  
+hiz1 = map(Y_ekseni,550,1023,0,255);
+hiz1= constrain(hiz1,0,255);                                       
+
+hiz2 = map(Y_ekseni,500,0,0,255);    
+hiz2= constrain(hiz2,0,255);          
+
+donus1 = map(X_ekseni,500,0, -128,128);    
+donus1= constrain(donus1,-128,128); 
+
+skid1a = (hiz1 - donus1);
+skid1a = constrain(skid1a,0,255);
+skid1b = (hiz1 +donus1);
+skid1b = constrain(skid1b,0,255);
+
+donus2 = map(X_ekseni,550,1023,-128,128);   
+donus2= constrain(donus2,-128,128); 
+
+skid2a = (hiz1 - donus2);
+skid2a = constrain(skid2a,0,255);
+skid2b = (hiz1 +donus2);
+skid2b = constrain(skid2b,0,255);
+
+skid3a = (hiz2 - donus1);
+skid3a = constrain(skid1a,0,255);
+skid3b = (hiz2 +donus1);
+skid3b = constrain(skid1b,0,255);
+
+skid4a = (hiz2 - donus2);
+skid4a = constrain(skid2a,0,255);
+skid4b = (hiz2 +donus2);
+skid4b = constrain(skid2b,0,255);
+                 
+donus3 = map(X_ekseni,500,0,0,255);
+donus3= constrain(donus3,0,255); 
+
+donus4 = map(X_ekseni,550,1023,0,255);
+donus4= constrain(donus4,0,255); 
+
+
+if (Y_ekseni > 550) { //Eğer joystick yukarı doğru hareket ederse...
+if ((X_ekseni > 501) && (X_ekseni < 549)) { //Eğer yukarıya doğru hareket etmişken sağa ve sola hareket etmemişse...
+analogWrite(solileri, hiz1); 
+analogWrite(sagileri, hiz1);        
+analogWrite(solgeri, 0);            
+analogWrite(saggeri, 0);
+}
+    if (X_ekseni < 500) { //Eğer yukarıya doğru hareket etmişken sola doğru hareket ederse...                              
+analogWrite(solileri, skid1a); 
+analogWrite(sagileri, skid1b);        
+analogWrite(solgeri, 0);            
+analogWrite(saggeri, 0);
+    }
+    if (X_ekseni > 550) {  //Eğer yukarıya doğru hareket etmişken sağa doğru hareket ederse...                             
+analogWrite(solileri, skid2b); 
+analogWrite(sagileri, skid2a);        
+analogWrite(solgeri, 0);            
+analogWrite(saggeri, 0);
+    }
+}
+
+if (Y_ekseni < 500) {    //Eğer joystick aşağı doğru hareket ederse... 
+if ((X_ekseni > 501) && (X_ekseni < 549)) { //Eğer aşağıya doğru hareket etmişken sağa ve sola hareket etmemişse...   
+analogWrite(solileri, 0);
+analogWrite(sagileri, 0);
+analogWrite(solgeri, hiz2);         
+analogWrite(saggeri, hiz2);
+}
+    if (X_ekseni < 500) { //Eğer aşağıya doğru hareket etmişken sola doğru hareket ederse...
+analogWrite(solileri, 0);
+analogWrite(sagileri, 0);
+analogWrite(solgeri, skid3a);         
+analogWrite(saggeri, skid3b);
+      
+    }
+    
+    if (X_ekseni > 550) { //Eğer aşağıya doğru hareket etmişken sağa doğru hareket ederse... 
+analogWrite(solileri, 0);
+analogWrite(sagileri, 0);
+analogWrite(solgeri, skid4b);         
+analogWrite(saggeri, skid4a);
+      
+    }
+}
+
+
+if ((Y_ekseni < 549) && (Y_ekseni >501 )) {  //Eğer joystick ne yukarı ne de aşağı hareket ettirilmemişse.
+
+if (X_ekseni <500) { //360 derece sola dönüş...
+analogWrite(solileri, 0);
+analogWrite(sagileri, donus3);
+analogWrite(solgeri, donus3);
+analogWrite(saggeri, 0);
+  
+}
+if (X_ekseni >550) { //360 derece sağa dönüş...
+analogWrite(solileri, donus4);
+analogWrite(sagileri, 0);
+analogWrite(solgeri, 0);
+analogWrite(saggeri, donus4);
+}
+if ((X_ekseni > 501)&& (X_ekseni <549)) { //full stop
+analogWrite(solileri, 0);
+analogWrite(sagileri, 0);
+analogWrite(solgeri, 0);
+analogWrite(saggeri, 0);
+}
+}
+
+if (buton==0) { //Buzzer (zil) çal.
+digitalWrite(2,HIGH); 
+}
+else{
+digitalWrite(2,LOW); 
+}
+
+
+//HATA AYIKLAMA (DEBUG)
+//Serial.print ("X Ekseni: ");
+//Serial.print(X_ekseni);
+//Serial.print (" Y Ekseni: ");
+//Serial.print(Y_ekseni);
+//Serial.print (" Hiz1: ");
+//Serial.print (hiz1);
+//Serial.print (" Hiz2: ");
+//Serial.print (hiz2);
+//Serial.print (" Donus1: ");
+//Serial.print (donus1);
+//Serial.print (" Donus2: ");
+//Serial.print (donus2);
+//Serial.print (" Skid1a: ");
+//Serial.print (skid1a);
+//Serial.print (" Skid1b: ");
+//Serial.println (skid1b);
+//Serial.print (" Skid2a: ");
+//Serial.print (skid2a);
+//Serial.print (" Skid0b: ");
+//Serial.print (skid2b);
+//Serial.print ( " BUTON: ");
+//Serial.print (buton);
+}
